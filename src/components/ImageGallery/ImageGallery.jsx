@@ -1,35 +1,23 @@
-import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
-import style from './ImageGallery.module.css';
 import PropTypes from 'prop-types';
+import { ImageGalleryCard } from './ImageGalleryCard/ImageGalleryCard';
+import { ImageGalleryList, ImageGalleryListItem } from './ImageGallery.styled';
 
-const ImageGallery = ({ images, handlePreview }) => {
-  const renderGallery = () =>
-    images.map(({ id, webformatURL, tags }) => (
-      <ImageGalleryItem
-        className={style.ImageGalleryItem}
-        key={id}
-        tags={tags}
-        smImage={webformatURL}
-        onClick={() => handlePreview(id)}
-      />
-    ));
-
+const ImageGallery = ({ items }) => {
   return (
-    <div>
-      <ul className={style.ImageGallery}>{images ? renderGallery() : null}</ul>
-    </div>
+    <ImageGalleryList>
+      {items.map(item => {
+        return (
+          <ImageGalleryListItem key={item.id}>
+            <ImageGalleryCard item={item} />
+          </ImageGalleryListItem>
+        );
+      })}
+    </ImageGalleryList>
   );
 };
 
 ImageGallery.propTypes = {
-  handlePreview: PropTypes.func.isRequired,
-  images: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      webformatURL: PropTypes.string.isRequired,
-      tags: PropTypes.string.isRequired,
-    })
-  ),
+  items: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default ImageGallery;

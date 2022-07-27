@@ -1,18 +1,18 @@
-import { HollowDotsSpinner } from 'react-epic-spinners';
-import style from './Loader.module.css';
-import PropTypes from 'prop-types';
+import { FallingLines } from 'react-loader-spinner';
+import { LoaderSection } from './Loader.styled';
 
-const Loader = ({ color, size }) => {
-  return (
-    <div className={style.Loader}>
-      <HollowDotsSpinner color={color} size={size} />
-    </div>
-  );
-};
 
-Loader.propTypes = {
-  color: PropTypes.string.isRequired,
-  size: PropTypes.number.isRequired,
-};
+export const Loader = () => {
+    return (
+      <LoaderSection>
+        <FallingLines
+          color="#4fa94d"
+          width="100"
+          visible={true}
+          ariaLabel="falling-lines-loading"
+        />
+      </LoaderSection>
+    );
+}
 
 export default Loader;

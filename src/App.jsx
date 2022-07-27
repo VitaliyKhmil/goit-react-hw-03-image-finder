@@ -1,79 +1,63 @@
 import React, { Component } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Searchbar from './components/Searchbar/Searchbar';
+import {Searchbar} from './components/Searchbar/Searchbar';
 import ImageGallery from './components/ImageGallery/ImageGallery';
-import Modal from './components/ImageGallery/Modal/Modal';
-import Button from './components/Button/Button';
+import { PrimaryButton } from './components/Button/PrimaryButton.styled';
 import Loader from './components/Loader/Loader';
-import { fetchImages } from 'components/services/fetchImages';
+import { fetchQuery, searchParams } from './API/fetchQuery';
 
 export default class App extends Component {
   state = {
-    searchRequest: '',
-    images: [],
-    galleryPage: 1,
-    error: null,
-    isLoading: false,
-    showModal: null,
+    q: '',
+    page: 1,
+    hits: [],
+    totalHits: null,
+    status: null,
+    lastPage: null,
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const prevSearch = prevState.searchRequest;
-    const currentSearch = this.state.searchRequest;
-    const prevGalleryPage = prevState.galleryPage;
-    const currentGalleryPage = this.state.galleryPage;
-
-    if (
-      prevSearch !== currentSearch ||
-      prevGalleryPage !== currentGalleryPage
-    ) {
-      this.updateImages();
+  componentDidUpdate(_, prevState) {
+    const { page } = this.state;
+    if (page !== 1 && prevState.page !== page) {
+      this.setState({
+        status: 'loading',
+      });
+      searchParams.page = page;
+      fetchQuery(searchParams).then(response => {
+        this.setState(prevState => ({
+          hits: [...prevState.hits, ...response.data.hits],
+          status: 'resolved',
+        }));
+      });
     }
   }
 
-  updateImages() {
-    const { searchRequest, galleryPage } = this.state;
-    this.setState({ isLoading: true });
-    setTimeout(() => {
-      try {
-        fetchImages(searchRequest, galleryPage).then(data => {
-          if (!data.data.hits.length) {
-            return toast.error(
-              'There is no images found with that search request'
-            );
-          }
-          const mappedImages = data.data.hits.map(
-            ({ id, webformatURL, tags, largeImageURL }) => ({
-              id,
-              webformatURL,
-              tags,
-              largeImageURL,
-            })
-          );
-          this.setState({
-            images: [...this.state.images, ...mappedImages],
-          });
+  handlerSearchbarSubmit = value => {
+    if (value.trim() === '') {
+      toast.warn('Please, enter something!');
+      return;
+    } else {
+      this.setState({
+        status: 'loading',
+        q: value,
+        page: 1,
+      });
+      searchParams.q = value;
+      fetchQuery(searchParams).then(response => {
+        this.setState({
+          lastPage: Math.ceil(response.data.totalHits / 12),
+          hits: [...response.data.hits],
+          totalHits: response.data.totalHits,
+          status: 'resolved',
         });
-      } catch (error) {
-        this.setState({ error });
-      } finally {
-        this.setState({ isLoading: false });
-      }
-    }, 1000);
-  }
-
-  handleSearchSubmit = searchRequest => {
-    this.setState({
-      searchRequest,
-      images: [],
-      galleryPage: 1,
-    });
+      });
+    }
   };
 
   loadMore = () => {
     this.setState(prevState => ({
-      galleryPage: prevState.galleryPage + 1,
+      page: prevState.page + 1,
     }));
   };
 
@@ -92,24 +76,16 @@ export default class App extends Component {
   };
 
   render() {
-    const { images, isLoading, error, showModal } = this.state;
+    const { page, lastPage, hits, totalHits, status } = this.state;
     return (
       <>
-        <Searchbar onSearch={this.handleSearchSubmit} />
-        {error && toast.error(`Whoops, something went wrong: ${error.message}`)}
-        {isLoading && <Loader color={'#3f51b5'} size={32} />}
-        {images.length > 0 && (
-          <>
-            <ImageGallery images={images} handlePreview={this.showModalImage} />
-            <Button loadMore={this.loadMore} />
-          </>
-        )}
-        {showModal && (
-          <Modal
-            lgImage={showModal.largeImageURL}
-            tags={showModal.tags}
-            closeModal={this.closeModalImage}
-          />
+        <Searchbar onSubmit={this.handlerSearchbarSubmit} />
+        {totalHits > 0 && <ImageGallery items={hits} />}
+        {status === 'loading' && <Loader/>}
+        {totalHits > 12 && page !== lastPage && (
+          <PrimaryButton type="button" onClick={this.loadMore}>
+            Load more
+          </PrimaryButton>
         )}
         <ToastContainer autoClose={3000} />
       </>

@@ -1,50 +1,51 @@
-import React, { Component } from 'react';
-import { toast } from 'react-toastify';
+import { Formik, ErrorMessage } from 'formik';
+import {
+  Header,
+  SearchForm,
+  SearchFormInput,
+  SearchFormButton,
+  ErrorText,
+} from './Searchbar.styled';
 import PropTypes from 'prop-types';
-import style from './Searchbar.module.css';
+import { HiSearch } from 'react-icons/hi';
+import * as yup from 'yup';
 
-export default class Searchbar extends Component {
-  static defaultProps = {
-    onSearch: PropTypes.func.isRequired,
-  };
+ const schema = yup.object().shape({
+   query: yup.string().min(2).required(),
+ });
 
-  state = {
-    searchRequest: '',
-  };
-
-  handleRequestChange = event => {
-    this.setState({ searchRequest: event.currentTarget.value.toLowerCase() });
-  };
-
-  handleSubmit = event => {
-    event.preventDefault();
-    if (this.state.searchRequest.trim() === '') {
-      return toast.warning('Search field is empty!');
-    }
-    this.props.onSearch(this.state.searchRequest);
-    this.setState({ searchRequest: '' });
-  };
-
-  render() {
+  export const Searchbar = ({ onSubmit }) => {
     return (
-      <header className={style.Searchbar}>
-        <form className={style.SearchForm} onSubmit={this.handleSubmit}>
-          <button type="submit" className={style.SearchForm_button}>
-            <span className={style.SearchForm_button_label}>Search</span>
-          </button>
-
-          <input
-            className={style.SearchForm_input}
-            type="text"
-            name="searchRequest"
-            value={this.state.searchRequest}
-            onChange={this.handleRequestChange}
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-          />
-        </form>
-      </header>
+      <Header>
+        <Formik
+          validationSchema={schema}
+          initialValues={{ query: ''}}
+          onSubmit={(values) => {
+            onSubmit(values.query);
+          }}
+        >
+          {props => (
+            <SearchForm>
+              <SearchFormInput
+                name="query"
+                type="text"
+                onChange={props.handleChange}
+                value={props.values.query}
+              />
+              <ErrorMessage
+                name="query"
+                render={msg => <ErrorText>{msg}</ErrorText>}
+              />
+              <SearchFormButton type="submit">
+                <HiSearch size="30px" />
+              </SearchFormButton>
+            </SearchForm>
+          )}
+        </Formik>
+      </Header>
     );
-  }
-}
+  };
+
+  Searchbar.propTypes = {
+    onSubmit: PropTypes.func.isRequired,
+  };
