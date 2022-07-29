@@ -1,16 +1,6 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-
-const API_KEY = '27690883-978e56c4f986dc8399e7ca8d2';
-const BASE_URL = 'https://pixabay.com/api/';
-
-export const searchParams = {
-  q: '',
-  page: 1,
-  image_type: 'photo',
-  orientation: 'horizontal',
-  per_page: 12,
-};
+import { BASE_URL, API_KEY} from '../components/Constants/API';
 
 const customAxios = axios.create({
   baseURL: `${BASE_URL}?key=${API_KEY}`,

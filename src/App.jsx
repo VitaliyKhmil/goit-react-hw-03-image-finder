@@ -1,59 +1,70 @@
 import React, { Component } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {Searchbar} from './components/Searchbar/Searchbar';
 import ImageGallery from './components/ImageGallery/ImageGallery';
 import { PrimaryButton } from './components/Button/PrimaryButton.styled';
+import { CorrectSearch } from './components/CorrectSearch/CorrectSearch';
 import Loader from './components/Loader/Loader';
-import { fetchQuery, searchParams } from './API/fetchQuery';
+import { fetchQuery } from './API/fetchQuery';
 
 export default class App extends Component {
   state = {
     q: '',
-    page: 1,
     hits: [],
     totalHits: null,
-    status: null,
+    error: null,
+    status: 'idle',
     lastPage: null,
+    page: 1,
   };
 
-  componentDidUpdate(_, prevState) {
-    const { page } = this.state;
+  async componentDidUpdate(_, prevState) {
+    const { page, q } = this.state;
     if (page !== 1 && prevState.page !== page) {
       this.setState({
         status: 'loading',
       });
-      searchParams.page = page;
-      fetchQuery(searchParams).then(response => {
-        this.setState(prevState => ({
-          hits: [...prevState.hits, ...response.data.hits],
-          status: 'resolved',
-        }));
-      });
+      try {
+        const {
+          data: { hits },
+        } = await fetchQuery({ page, q });
+        if (page >= 1) {
+          this.setState(prevState => ({
+            hits: [...prevState.hits, ...hits],
+            status: 'resolved',
+          }));
+      }
+    } catch (error) {
+      this.setState({
+          totalHits: null,
+          hits: [],
+          status: 'rejected',
+        });
+        toast.info(`Something went wrong ${error}`);
+    } 
     }
   }
 
-  handlerSearchbarSubmit = value => {
-    if (value.trim() === '') {
-      toast.warn('Please, enter something!');
-      return;
-    } else {
+  handlerSearchbarSubmit = async value => {
+    this.setState({
+      status: 'loading',
+      q: value,
+      page: 1,
+    });
+
+     try {
+      const responce = await fetchQuery({ q: value, page: 1 });
       this.setState({
-        status: 'loading',
-        q: value,
-        page: 1,
+        lastPage: Math.ceil(responce.data.totalHits / 12),
+        hits: [...responce.data.hits],
+        totalHits: responce.data.totalHits,
+        status: 'resolved',
       });
-      searchParams.q = value;
-      fetchQuery(searchParams).then(response => {
-        this.setState({
-          lastPage: Math.ceil(response.data.totalHits / 12),
-          hits: [...response.data.hits],
-          totalHits: response.data.totalHits,
-          status: 'resolved',
-        });
-      });
+    } catch (e) {
+      toast.error(e);
     }
-  };
+  };    
 
   loadMore = () => {
     this.setState(prevState => ({
@@ -80,14 +91,15 @@ export default class App extends Component {
     return (
       <>
         <Searchbar onSubmit={this.handlerSearchbarSubmit} />
+        {status === 'resolved' && totalHits === 0 && <CorrectSearch />}
         {totalHits > 0 && <ImageGallery items={hits} />}
-        {status === 'loading' && <Loader/>}
+        {status === 'loading' && <Loader />}
         {totalHits > 12 && page !== lastPage && (
           <PrimaryButton type="button" onClick={this.loadMore}>
             Load more
           </PrimaryButton>
         )}
-        <ToastContainer autoClose={3000} />
+        <ToastContainer position="top-center" autoClose={3000} />
       </>
     );
   }

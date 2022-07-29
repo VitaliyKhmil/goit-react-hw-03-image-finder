@@ -1,10 +1,9 @@
-import { Formik, ErrorMessage } from 'formik';
+import { Formik } from 'formik';
 import {
   Header,
   SearchForm,
   SearchFormInput,
   SearchFormButton,
-  ErrorText,
 } from './Searchbar.styled';
 import PropTypes from 'prop-types';
 import { HiSearch } from 'react-icons/hi';
@@ -19,22 +18,18 @@ import * as yup from 'yup';
       <Header>
         <Formik
           validationSchema={schema}
-          initialValues={{ query: ''}}
-          onSubmit={(values) => {
+          initialValues={{ query: '' }}
+          onSubmit={values => {
             onSubmit(values.query);
           }}
         >
           {props => (
-            <SearchForm>
+            <SearchForm>            
               <SearchFormInput
                 name="query"
                 type="text"
                 onChange={props.handleChange}
                 value={props.values.query}
-              />
-              <ErrorMessage
-                name="query"
-                render={msg => <ErrorText>{msg}</ErrorText>}
               />
               <SearchFormButton type="submit">
                 <HiSearch size="30px" />

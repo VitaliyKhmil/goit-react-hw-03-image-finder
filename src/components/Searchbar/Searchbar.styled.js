@@ -12,7 +12,7 @@ export const Header = styled.header`
   min-height: 64px;
   padding: 12px 24px;
   color: white;
-  background-color: blue;
+  background-color: #79ed0c;
   box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
     0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
 `;
@@ -21,23 +21,22 @@ export const SearchForm = styled(Form)`
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: 600px;
+  max-width: 680px;
   background-color: white;
-  border-radius: 3px;
+  border-radius: 12px;
   overflow: hidden;
 `;
 
 export const SearchFormInput = styled(Field)`
-  display: inline-block;
   width: 100%;
   font: inherit;
-  font-size: 20px;
+  font-size: 35px;
   border: none;
   outline: none;
-  padding: 4px 10px;
+  padding: 2px 12px;
   ::placeholder {
     font: inherit;
-    font-size: 18px;
+    font-size: 20px;
   }
 `;
 
@@ -52,11 +51,7 @@ export const SearchFormButton = styled.button`
   cursor: pointer;
   outline: none;
   :hover {
-    color: blue;
+    color: #79ed0c;
   }
 `;
 
-export const ErrorText = styled.p`
-  font-size: 12px;
-  color: red;
-`;
